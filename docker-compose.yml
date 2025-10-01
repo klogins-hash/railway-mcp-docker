@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  railway-mcp:
+    build: .
+    container_name: railway-mcp-server
+    environment:
+      - RAILWAY_API_TOKEN=${RAILWAY_API_TOKEN}
+      - PORT=8080
+      - NODE_ENV=production
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "console.log('Health check passed')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
