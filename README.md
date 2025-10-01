@@ -1,13 +1,33 @@
 # Railway MCP Server Docker Deployment
 
-This Docker setup allows you to deploy the Railway MCP server as a containerized service on Railway or any other container platform.
+This Docker setup allows you to deploy the Railway MCP server as a containerized HTTP service on Railway or any other container platform.
 
 ## Features
 
-- 🐳 **Docker containerized** - Easy deployment and scaling
+- 🐃 #�HTTX Server** - Exposes MCP functionality via REST API
 - 🚀 **Railway optimized** - Configured for Railway's deployment requirements
-- 🔒 **Secure** - Non-root user, health checks, and environment variable management
+- 🔒  
+Wecure** - Non-root user, health checks, and environment variable management
 - 📊 **Production ready** - Health checks, proper logging, and restart policies
+
+## API Endpoints
+
+Once deployed, your Railway MCP server exposes these HTTP endpoints:
+
+- `GET /` - Server information and available endpoints
+- `GET /health` - Health check endpoint
+- `POST /mcp` - MCP command execution
+
+### Example API Usage
+
+```bash
+curl -X POST https://your-app.railway.app/mcp \
+  -H "Content-Type: application/json" \
+  -d '{
+  "method": "project-list",
+  "params": {}
+}'
+```
 
 ## Quick Start
 
@@ -15,6 +35,7 @@ This Docker setup allows you to deploy the Railway MCP server as a containerized
 
 1. **Clone and setup:**
    ```bash
+   git clone https://github.com/klogins-hash/railway-mcp-docker.git
    cd railway-mcp-docker
    cp .env.example .env
    # Edit .env with your Railway API token
@@ -26,72 +47,112 @@ This Docker setup allows you to deploy the Railway MCP server as a containerized
    ```
 
 3. **Test the server:**
-   The MCP server will be running on `http://localhost:8080`
+   ```bash
+   curl http://localhost:8080/health
+   ```
 
 ### Deploy to Railway
 
-1. **Create a new Railway service:**
-   ```bash
-   railway login
-   railway init
-   railway add
-   ```
+#### Option 1: Using the Deploy Script
+```bash
+git clone https://github.com/klogins-hash/railway-mcp-docker.git
+cd railway-mcp-docker
+./deploy.sh
+# Follow the prompts to set your Railway API token
+```
 
-2. **Set environment variables:**
-   ```bash
-   railway variables set RAILWAY_API_TOKEN=your_token_here
-   ```
+#### Option 2: Manual Railway Deployment
+```bash
+# Initialize Railway project
+railway init --name "railway-mcp-server"
 
-3. **Deploy:**
-   ```bash
-   railway up
-   ```
+# Set environment variables
+railway variables set RAILWAY_API_TOKEN="your_token_here"
+railway variables set NODE_ENV="production"
+
+# Deploy
+railway up
+```
+
+#### Option 3: Deploy from GitHub
+1. Connect your GitHub repository to Railway
+2. Set environment variables in Railway dashboard
+3. Railway will automatically deploy on git push
 
 ## Configuration
 
-### Environment Variables
+### Required Environment Variables
 
-- `RAILWAY_API_TOKEN` - Your Railway API token (required)
-- `PORT` - Port for the server (Railway sets this automatically)
-- `NODE_ENV` - Environment (production/development)
+| Variable | Description | Required | Example |
+|----------|------------|----------|---------|
+| `RAB�WAY_API_TOKEN` | Your Railway API token | ✅ Yes | `0bc37f0c-3477-4ad6-a430-a50ed86a1680` |
+| `PORT` | Server port (Railway sets automatically) | ❌ No | `8080` |
+| `NODE_ENV` | Node.js environment | ❌ No | `production` |
 
-### Railway Integration
+### How to Get Your Railway API Token
 
-This MCP server provides comprehensive Railway management through these tools:
+1. Go to [https://railway.com/account/tokens](https://railway.com/account/tokens)
+2. Click "New Token"
+3. Choose "Account Token" for full access
+4. Copy the generated token
+5. Use it as `RAILWAY_API_TOKEN`
 
-- **Project Management**: List, create, delete projects
-- **Service Management**: Deploy, restart, update services
-- **Environment Variables**: Set, list, bulk update variables
-- **Deployments**: Trigger, monitor, get logs
-- **Database Management**: Deploy and manage databases
+## Available MCP Tools
 
-## Usage
+The Railway MCP server provides comprehensive Railway management capabilities:
 
-Once deployed, you can use this MCP server with AI assistants like:
+### 🔂 Authentication & Projects
+- `configure` - Set Railway API token
+- `project-list` - List all projects
+- `project-info` - Get project details
+- `project-create` - Create new projects
+- `project-delete` - Delete projects
 
-- **Windsurf/Cascade** - Add to `.windsurf/mcp.json`
-- **Claude Desktop** - Add to MCP configuration
-- **Cursor** - Add to `.cursor/mcp.json`
+### 🚀 Service Management
+- `service-list` - List services in projects
+- `service-create-from-repo` - Create service from GitHub repo
+- `service-create-from-image` - Create service from Docker image
+- `service-restart` - Restart services
+- `service-update` - Update service configuration
 
-### Example MCP Configuration
+### 📐 Evironment Variables
+- `variable-list` - List environment variables
+- `variable-set` - Set variables
+- `variable-bulk-set` - Bulk update variables
+- `variable-copy` - Copy variables between environments
 
-```json
-{
-  "mcpServers": {
-    "Railway": {
-      "command": "npx",
-      "args": ["-y", "railway-mcp-client"],
-      "env": {
-        "RAILWAY_MCP_SERVER_URL": "https://your-railway-app.railway.app"
-      }
-    }
-  }
-}
+### 📄 Eyeployments & Monitoring
+- `deployment-list` - List deployments
+- `deployment-trigger` - Trigger new deployments
+- `deployment-logs` - Get deployment logs
+- `deployment-health-check` - Check deployment health
+
+### 🗄️ Database Management
+- `database-list-types` - List available database types
+- `database-deploy` - Deploy and manage databases
+
+## Troubleshooting
+
+### Common Issues
+
+**Issue:** Container fails to start
+**Solution:** Check that `RAILWAY_API_TOKEN` is set correctly in environment variables
+
+**Issue:** 502 Bad Gateway errors
+**Solution:** Ensure the container is listening on `0.0.0.0:PORT`, not `localhost:PORT`
+
+**Issue:** MCP commands fail
+**Solution:** Verify your Railway API token has the necessary permissions
+
+### Logs and Monitoring
+
+```bash
+# View logs in Railway
+railway logs
+
+# Check health status
+curl https://your-app.railway.app/health
 ```
-
-## Health Monitoring
-
-The container includes health checks that verify the MCP server is responding correctly. Railway will automatically restart unhealthy containers.
 
 ## Security
 
